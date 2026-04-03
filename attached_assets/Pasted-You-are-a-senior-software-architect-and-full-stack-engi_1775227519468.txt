@@ -1,0 +1,176 @@
+You are a senior software architect and full-stack engineer building a production-grade web application.
+
+Your task is to DESIGN and IMPLEMENT a modern, scalable, industry-ready ticket booking platform named:
+
+🔥 **CineVerse** – A smart movie & event booking ecosystem
+
+Inspired by real-world platforms like BookMyShow, but built with modern architecture and enhanced features.
+
+---
+
+TECH STACK:
+
+* Framework: Next.js (App Router, full-stack)
+* Database: MySQL (fully normalized, optimized queries)
+* Machine Learning: Python (Flask API for predictions & analytics)
+* Payment Gateway: Razorpay
+* Styling: Tailwind CSS (modern UI)
+* Architecture: Modular, scalable, production-level
+
+---
+
+CORE PRODUCT VISION:
+
+CineVerse is not just a booking app — it is a **smart entertainment platform** that provides:
+
+* Seamless ticket booking experience
+* Intelligent recommendations using ML
+* Real-time seat availability
+* Secure and fast payments
+* Data-driven admin insights
+
+---
+
+EXECUTION RULES (STRICT):
+
+* Build like a real production system (NOT a basic project)
+* Write COMPLETE working code (no placeholders)
+* Follow clean architecture and separation of concerns
+* Use reusable components and modular design
+* Ensure code runs correctly inside Replit
+* After each phase:
+
+  1. Confirm working state
+  2. Briefly explain implementation
+  3. WAIT for next instruction
+
+---
+
+KEY FEATURES:
+
+👤 USER:
+
+* Secure authentication (JWT/session)
+* Browse events (filters: city, date, category)
+* Event details page (poster, timing, venue, price)
+* Real-time seat selection with availability
+* Ticket booking system
+* Razorpay payment integration
+* Booking history dashboard
+
+🛠 ADMIN:
+
+* Event CRUD (Create, Read, Update, Delete)
+* Venue and seat management
+* Booking monitoring
+* Analytics dashboard
+
+---
+
+ADVANCED INDUSTRY FEATURES:
+
+* Seat locking mechanism (prevent double booking)
+* Booking lifecycle:
+  pending → confirmed → failed
+* Payment verification (backend validation)
+* Optimized database queries + indexing
+* Error handling and validation
+
+📊 DATA SCIENCE (ML):
+
+* Demand prediction for events
+* Popular event detection
+* Revenue analytics
+* Graphs: bookings vs time, revenue trends
+
+---
+
+SYSTEM ARCHITECTURE:
+
+User → Next.js UI
+↓
+Next.js API (/app/api)
+↓
+MySQL Database
+↓
+ML Service (Flask API)
+↓
+Payment Gateway (Razorpay)
+
+---
+
+PROJECT STRUCTURE:
+
+/app                → Pages + API routes
+/components         → UI components
+/lib                → DB connection, auth
+/services           → ML + payment services
+/ml-service         → Python ML backend
+/database           → SQL schema
+/public             → Static assets
+
+---
+
+DEVELOPMENT PHASES:
+
+PHASE 1: Project Setup
+
+* Initialize Next.js app
+* Setup folder structure
+* Configure Tailwind CSS
+* Setup environment variables
+
+PHASE 2: Database Design
+
+* Design normalized schema (3NF)
+* Tables: users, events, seats, bookings, payments
+
+PHASE 3: Backend APIs
+
+* Auth APIs
+* Events APIs
+* Booking APIs (with seat locking)
+
+PHASE 4: Frontend UI
+
+* Build pages + components
+* Connect APIs
+
+PHASE 5: Payment Integration
+
+* Razorpay integration
+* Payment verification flow
+
+PHASE 6: ML Integration
+
+* Flask API setup
+* Prediction endpoint integration
+
+PHASE 7: Admin Dashboard
+
+* Charts + analytics (ML insights)
+
+---
+
+OUTPUT FORMAT:
+
+* Create files with exact paths
+* Provide full working code
+* Use comments for important logic
+* Keep code clean and maintainable
+
+---
+
+START NOW:
+
+Execute PHASE 1 ONLY:
+
+* Initialize Next.js project
+* Setup folder structure
+* Install dependencies
+* Configure Tailwind CSS
+
+STOP after PHASE 1 and wait for my instruction.
+
+DO NOT skip steps.
+DO NOT jump ahead.
