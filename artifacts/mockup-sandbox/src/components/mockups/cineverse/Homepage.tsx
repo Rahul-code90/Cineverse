@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AppLayout } from "./_shared/AppLayout";
-import { Search, Play, Star, Clock, ChevronRight, MapPin, Calendar, Flame, TrendingUp, Award, Zap, ArrowRight } from "lucide-react";
+import { Search, Play, Star, Clock, ChevronRight, MapPin, Calendar, Flame, TrendingUp, Award, Zap, ArrowRight, Film } from "lucide-react";
 
 const MOVIES = [
   { id: 1, title: "Dune: Part Three", genre: "Sci-Fi", rating: 9.1, runtime: "2h 45m", poster: "bg-gradient-to-b from-amber-900 to-amber-950", badge: "NEW", popularity: 98, languages: ["IMAX", "4DX", "3D"] },
