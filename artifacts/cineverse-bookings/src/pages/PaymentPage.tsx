@@ -71,7 +71,7 @@ export function PaymentPage() {
     setProcessing(true);
     setError(null);
     try {
-      const isMock = api.admin !== undefined && !process.env.RAZORPAY_KEY_ID; // Simplified check or use a dedicated flag
+      const isMock = api.admin !== undefined && !import.meta.env.VITE_RAZORPAY_KEY_ID; // Use import.meta.env for Vite
       const rzpKey = "rzp_test_placeholder";
 
       if (rzpKey === "rzp_test_placeholder") {
