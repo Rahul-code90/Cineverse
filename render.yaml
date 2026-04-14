@@ -3,7 +3,7 @@ services:
   - type: web
     name: cineverse-app
     runtime: node
-    buildCommand: pnpm install && pnpm run build
+    buildCommand: pnpm install && pnpm run build:prod
     startCommand: pnpm --filter @workspace/api-server run start
     envVars:
       - key: NODE_ENV
