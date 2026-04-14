@@ -19,7 +19,12 @@ router.get("/bookings", async (req, res) => {
     const bookings = await db.select().from(bookingsTable)
       .where(eq(bookingsTable.userId, userId))
       .orderBy(desc(bookingsTable.createdAt));
-    res.json({ bookings });
+    // Parse seats from JSON string back to array for response
+    const parsed = bookings.map(b => ({
+      ...b,
+      seats: typeof b.seats === "string" ? JSON.parse(b.seats) : b.seats,
+    }));
+    res.json({ bookings: parsed });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch bookings" });
   }
@@ -50,6 +55,7 @@ router.post("/bookings", async (req, res) => {
 
     const bookingRef = generateBookingRef();
 
+    // SQLite stores arrays as JSON strings
     const [booking] = await db.insert(bookingsTable).values({
       bookingRef,
       userId,
@@ -61,7 +67,7 @@ router.post("/bookings", async (req, res) => {
       date,
       time,
       format: format || "2D",
-      seats,
+      seats: JSON.stringify(Array.isArray(seats) ? seats : [seats]),
       totalAmount,
       convenienceFee: convenienceFee || Math.round(totalAmount * 0.1),
       status: "confirmed",
@@ -75,7 +81,7 @@ router.post("/bookings", async (req, res) => {
         .where(eq(showtimesTable.id, showtimeId));
     }
 
-    res.json({ booking });
+    res.json({ booking: { ...booking, seats: JSON.parse(booking.seats as string) } });
   } catch (err) {
     res.status(500).json({ error: "Failed to create booking" });
   }
@@ -89,7 +95,7 @@ router.patch("/bookings/:id/cancel", async (req, res) => {
       .where(eq(bookingsTable.id, id))
       .returning();
     if (!booking) return res.status(404).json({ error: "Booking not found" });
-    res.json({ booking });
+    res.json({ booking: { ...booking, seats: typeof booking.seats === "string" ? JSON.parse(booking.seats) : booking.seats } });
   } catch (err) {
     res.status(500).json({ error: "Failed to cancel booking" });
   }
@@ -107,7 +113,7 @@ router.patch("/bookings/:id/rate", async (req, res) => {
       .where(eq(bookingsTable.id, id))
       .returning();
     if (!booking) return res.status(404).json({ error: "Booking not found" });
-    res.json({ booking });
+    res.json({ booking: { ...booking, seats: typeof booking.seats === "string" ? JSON.parse(booking.seats) : booking.seats } });
   } catch (err) {
     res.status(500).json({ error: "Failed to rate booking" });
   }

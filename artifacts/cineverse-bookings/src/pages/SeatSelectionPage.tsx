@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
-import { Armchair, Clock, MapPin, X, Info, ArrowRight, Zap } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { Armchair, Clock, MapPin, X, Info, ArrowRight, Zap, Film, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
+import { useApp } from "../contexts/AppContext";
 
 type SeatStatus = "available" | "occupied" | "selected" | "wheelchair";
 type SeatCategory = "premium" | "executive" | "standard";
@@ -14,19 +15,20 @@ interface Seat {
   category: SeatCategory;
 }
 
-const ROW_CONFIG: { row: string; count: number; category: SeatCategory; price: number }[] = [
-  { row: "A", count: 12, category: "premium", price: 650 },
-  { row: "B", count: 14, category: "premium", price: 650 },
-  { row: "C", count: 14, category: "executive", price: 450 },
-  { row: "D", count: 16, category: "executive", price: 450 },
-  { row: "E", count: 16, category: "executive", price: 450 },
-  { row: "F", count: 18, category: "standard", price: 200 },
-  { row: "G", count: 18, category: "standard", price: 200 },
-  { row: "H", count: 18, category: "standard", price: 200 },
-  { row: "J", count: 20, category: "standard", price: 200 },
-];
+// Row config — if bookingSession has price, use that for standard rows
+function buildSeats(basePrice: number): Seat[] {
+  const ROW_CONFIG: { row: string; count: number; category: SeatCategory; price: number }[] = [
+    { row: "A", count: 12, category: "premium",   price: Math.round(basePrice * 1.8) },
+    { row: "B", count: 14, category: "premium",   price: Math.round(basePrice * 1.8) },
+    { row: "C", count: 14, category: "executive", price: Math.round(basePrice * 1.3) },
+    { row: "D", count: 16, category: "executive", price: Math.round(basePrice * 1.3) },
+    { row: "E", count: 16, category: "executive", price: Math.round(basePrice * 1.3) },
+    { row: "F", count: 18, category: "standard",  price: basePrice },
+    { row: "G", count: 18, category: "standard",  price: basePrice },
+    { row: "H", count: 18, category: "standard",  price: basePrice },
+    { row: "J", count: 20, category: "standard",  price: basePrice },
+  ];
 
-function buildSeats(): Seat[] {
   const rng = (i: number) => {
     const x = Math.sin(42 + i) * 10000;
     return x - Math.floor(x);
@@ -37,8 +39,7 @@ function buildSeats(): Seat[] {
     for (let n = 1; n <= count; n++) {
       seats.push({
         id: `${row}${n}`,
-        row,
-        num: n,
+        row, num: n,
         status: rng(idx++) < 0.35 ? "occupied" : "available",
         price,
         category,
@@ -51,8 +52,6 @@ function buildSeats(): Seat[] {
   if (j20) j20.status = "wheelchair";
   return seats;
 }
-
-const INITIAL_SEATS = buildSeats();
 
 const CATEGORY_STYLES: Record<SeatCategory, { available: string; selected: string }> = {
   premium: {
@@ -71,9 +70,18 @@ const CATEGORY_STYLES: Record<SeatCategory, { available: string; selected: strin
 
 export function SeatSelectionPage() {
   const [, navigate] = useLocation();
-  const [seats, setSeats] = useState<Seat[]>(INITIAL_SEATS);
+  const { bookingSession, setBookingSession } = useApp();
+
+  const [seats, setSeats] = useState<Seat[]>([]);
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
   const [timeLeft] = useState("09:45");
+  const [imgError, setImgError] = useState(false);
+
+  // Build seats when session loads
+  useEffect(() => {
+    const basePrice = 200; // default; could come from showtime
+    setSeats(buildSeats(basePrice));
+  }, []);
 
   const toggleSeat = (id: string) => {
     setSeats(prev => prev.map(s => {
@@ -89,16 +97,47 @@ export function SeatSelectionPage() {
   const rows = [...new Set(seats.map(s => s.row))];
   const seatsByRow = Object.fromEntries(rows.map(r => [r, seats.filter(s => s.row === r)]));
 
+  const handleProceed = () => {
+    if (!selectedSeats.length || !bookingSession) return;
+    setBookingSession({
+      ...bookingSession,
+      seats: selectedSeats.map(s => s.id),
+      totalAmount: totalPrice,
+      convenienceFee: convenience,
+    });
+    navigate("/payment");
+  };
+
+  if (!bookingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-sm">
+          <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mx-auto mb-4">
+            <AlertCircle className="w-8 h-8 text-amber-400" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">No Booking Session</h2>
+          <p className="text-white/40 text-sm mb-6">Please go back and select a movie and showtime first.</p>
+          <button onClick={() => navigate("/")}
+            className="px-6 py-3 bg-[#e63946] hover:bg-[#c1121f] rounded-xl font-semibold text-sm transition-colors">
+            Browse Movies
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <div>
+      <div className="flex items-center gap-4 mb-8 flex-wrap">
+        <button onClick={() => navigate(-1 as any)} className="text-white/40 hover:text-white text-sm flex items-center gap-1 transition-colors">
+          ← Back
+        </button>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">Select Your Seats</h1>
           <div className="flex items-center gap-4 mt-1.5 text-sm text-white/50 flex-wrap">
-            <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />PVR ICON, Andheri West</span>
-            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />01:30 PM · IMAX</span>
-            <span className="text-white/20">·</span>
-            <span>Thu, Apr 03</span>
+            <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" />{bookingSession.venue}</span>
+            <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{bookingSession.time} · {bookingSession.format}</span>
+            <span>{bookingSession.date}</span>
           </div>
         </div>
         {selectedSeats.length > 0 && (
@@ -110,6 +149,7 @@ export function SeatSelectionPage() {
       </div>
 
       <div className="flex gap-8 flex-col lg:flex-row">
+        {/* Seat Map */}
         <div className="flex-1 overflow-x-auto">
           <div className="mb-10 text-center">
             <div className="mx-auto max-w-lg">
@@ -122,6 +162,7 @@ export function SeatSelectionPage() {
           <div className="space-y-1.5 min-w-max mx-auto">
             {rows.map(row => {
               const rowSeats = seatsByRow[row];
+              if (!rowSeats) return null;
               const category = rowSeats[0].category;
               return (
                 <div key={row} className="flex items-center gap-3">
@@ -163,11 +204,12 @@ export function SeatSelectionPage() {
             })}
           </div>
 
+          {/* Legend */}
           <div className="mt-10 flex flex-wrap items-center justify-center gap-5">
             {[
-              { style: "bg-emerald-900/35 border-emerald-700/25", label: "Standard — ₹200" },
-              { style: "bg-blue-900/50 border-blue-700/40", label: "Executive — ₹450" },
-              { style: "bg-purple-900/50 border-purple-700/40", label: "Premium — ₹650" },
+              { style: "bg-emerald-900/35 border-emerald-700/25", label: "Standard" },
+              { style: "bg-blue-900/50 border-blue-700/40", label: "Executive" },
+              { style: "bg-purple-900/50 border-purple-700/40", label: "Premium" },
               { style: "bg-white/8 border-white/8", label: "Occupied" },
               { style: "bg-emerald-500 border-emerald-400", label: "Selected" },
               { style: "bg-amber-500/25 border-amber-500/40", label: "Accessible" },
@@ -180,17 +222,28 @@ export function SeatSelectionPage() {
           </div>
         </div>
 
+        {/* Booking Summary */}
         <div className="w-full lg:w-72 shrink-0">
           <div className="bg-[#12121e] border border-white/10 rounded-2xl p-5 sticky top-20">
             <h3 className="font-bold mb-5">Booking Summary</h3>
 
+            {/* Movie info */}
             <div className="flex gap-3 mb-5 pb-5 border-b border-white/8">
-              <div className="w-12 h-16 rounded-xl bg-gradient-to-b from-amber-700 to-amber-950 border border-white/10 shrink-0" />
+              <div className="w-12 h-16 rounded-xl overflow-hidden border border-white/10 shrink-0">
+                {!imgError && bookingSession.posterUrl ? (
+                  <img src={bookingSession.posterUrl} alt={bookingSession.movieTitle}
+                    className="w-full h-full object-cover" onError={() => setImgError(true)} />
+                ) : (
+                  <div className={`w-full h-full bg-gradient-to-b ${bookingSession.posterGradient || "from-gray-800 to-gray-950"} flex items-center justify-center`}>
+                    <Film className="w-4 h-4 text-white/30" />
+                  </div>
+                )}
+              </div>
               <div>
-                <div className="font-semibold text-sm">Dune: Part Three</div>
-                <div className="text-xs text-white/40 mt-1">IMAX · English</div>
-                <div className="text-xs text-white/40">01:30 PM · Apr 03</div>
-                <div className="text-xs text-white/40 mt-0.5">PVR ICON, Andheri West</div>
+                <div className="font-semibold text-sm">{bookingSession.movieTitle}</div>
+                <div className="text-xs text-white/40 mt-1">{bookingSession.format}</div>
+                <div className="text-xs text-white/40">{bookingSession.time} · {bookingSession.date.slice(0, 6)}</div>
+                <div className="text-xs text-white/40 mt-0.5">{bookingSession.venue}</div>
               </div>
             </div>
 
@@ -241,7 +294,7 @@ export function SeatSelectionPage() {
 
             <button
               disabled={selectedSeats.length === 0}
-              onClick={() => selectedSeats.length > 0 && navigate("/payment")}
+              onClick={handleProceed}
               className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all ${
                 selectedSeats.length > 0
                   ? "bg-[#e63946] hover:bg-[#c1121f] text-white shadow-lg shadow-[#e63946]/20"

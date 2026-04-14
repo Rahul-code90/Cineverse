@@ -5,10 +5,18 @@ import { eq } from "drizzle-orm";
 
 const router = Router();
 
+function parseMovie(movie: any) {
+  return {
+    ...movie,
+    languages: typeof movie.languages === "string" ? JSON.parse(movie.languages) : movie.languages,
+    cast: typeof movie.cast === "string" ? JSON.parse(movie.cast) : movie.cast,
+  };
+}
+
 router.get("/movies", async (req, res) => {
   try {
     const movies = await db.select().from(moviesTable).where(eq(moviesTable.isActive, 1));
-    res.json({ movies });
+    res.json({ movies: movies.map(parseMovie) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch movies" });
   }
@@ -19,7 +27,7 @@ router.get("/movies/:id", async (req, res) => {
     const id = parseInt(req.params.id);
     const [movie] = await db.select().from(moviesTable).where(eq(moviesTable.id, id));
     if (!movie) return res.status(404).json({ error: "Movie not found" });
-    res.json({ movie });
+    res.json({ movie: parseMovie(movie) });
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch movie" });
   }
@@ -29,8 +37,7 @@ router.get("/movies/:id/showtimes", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const { date } = req.query;
-    let query = db.select().from(showtimesTable).where(eq(showtimesTable.movieId, id));
-    const showtimes = await query;
+    const showtimes = await db.select().from(showtimesTable).where(eq(showtimesTable.movieId, id));
     const filtered = date ? showtimes.filter(s => s.date === date) : showtimes;
     res.json({ showtimes: filtered });
   } catch (err) {

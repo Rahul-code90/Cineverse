@@ -1,9 +1,9 @@
-import { pgTable, serial, text, integer, real } from "drizzle-orm/pg-core";
+import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
-export const showtimesTable = pgTable("showtimes", {
-  id: serial("id").primaryKey(),
+export const showtimesTable = sqliteTable("showtimes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
   movieId: integer("movie_id").notNull(),
   venue: text("venue").notNull(),
   date: text("date").notNull(),

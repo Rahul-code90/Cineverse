@@ -48,4 +48,46 @@ router.post("/auth/login", async (req, res) => {
   }
 });
 
+router.get("/auth/me/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    if (!user) return res.status(404).json({ error: "User not found" });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, city: user.city, cinePoints: user.cinePoints } });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
+router.patch("/auth/profile/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { name, city, currentPassword, newPassword } = req.body;
+
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const updates: any = {};
+    if (name) updates.name = name;
+    if (city) updates.city = city;
+
+    if (newPassword) {
+      if (!currentPassword || user.passwordHash !== hashPassword(currentPassword)) {
+        return res.status(401).json({ error: "Current password is incorrect" });
+      }
+      updates.passwordHash = hashPassword(newPassword);
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({ error: "No fields to update" });
+    }
+
+    const [updated] = await db.update(usersTable).set(updates).where(eq(usersTable.id, id)).returning();
+    res.json({ user: { id: updated.id, name: updated.name, email: updated.email, city: updated.city, cinePoints: updated.cinePoints } });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
 export default router;
+

@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
+import paymentsRouter from "./payments";
 import moviesRouter from "./movies";
 import eventsRouter from "./events";
 import bookingsRouter from "./bookings";
@@ -11,6 +12,7 @@ const router: IRouter = Router();
 
 router.use(healthRouter);
 router.use(moviesRouter);
+router.use("/payments", paymentsRouter);
 router.use(eventsRouter);
 router.use(bookingsRouter);
 router.use(authRouter);

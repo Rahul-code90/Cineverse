@@ -1,19 +1,40 @@
 import { useState } from "react";
-import { Film, Mail, Lock, Eye, EyeOff, ArrowRight, Chrome, Facebook, Phone } from "lucide-react";
+import { Film, Mail, Lock, Eye, EyeOff, ArrowRight, Chrome, Phone, Loader2 } from "lucide-react";
 import { useLocation } from "wouter";
+import { api } from "../lib/api";
+import { useApp } from "../contexts/AppContext";
 
 export function LoginPage() {
   const [, navigate] = useLocation();
+  const { setUser } = useApp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [city, setCity] = useState("Mumbai");
   const [showPass, setShowPass] = useState(false);
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate("/");
+    setError("");
+    setLoading(true);
+    try {
+      let result;
+      if (tab === "login") {
+        result = await api.auth.login(email, password);
+      } else {
+        if (!name.trim()) { setError("Please enter your full name."); setLoading(false); return; }
+        result = await api.auth.register({ name, email, password, city });
+      }
+      setUser(result.user);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const CITIES = ["Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad", "Pune", "Kolkata"];
@@ -175,12 +196,21 @@ export function LoginPage() {
                 </select>
               </div>
             )}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
             <button
               type="submit"
-              className="w-full py-3.5 bg-[#e63946] hover:bg-[#c1121f] text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#e63946]/20 group"
+              disabled={loading}
+              className="w-full py-3.5 bg-[#e63946] hover:bg-[#c1121f] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#e63946]/20 group"
             >
-              {tab === "login" ? "Sign In" : "Create Account"}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              {loading ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> {tab === "login" ? "Signing in..." : "Creating account..."}</>
+              ) : (
+                <>{tab === "login" ? "Sign In" : "Create Account"} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>
+              )}
             </button>
           </form>
 

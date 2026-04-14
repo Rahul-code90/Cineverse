@@ -6,14 +6,28 @@ import { api, type Showtime } from "../lib/api";
 import { useApp } from "../contexts/AppContext";
 
 const VENUES = ["PVR ICON, Andheri West", "INOX Grand, Bandra", "Cinepolis, Goregaon", "Carnival Cinemas, Thane"];
-const DATES = [
-  { day: "Thu", date: "03", full: "2026-04-03", label: "Apr 03, 2026" },
-  { day: "Fri", date: "04", full: "2026-04-04", label: "Apr 04, 2026" },
-  { day: "Sat", date: "05", full: "2026-04-05", label: "Apr 05, 2026" },
-  { day: "Sun", date: "06", full: "2026-04-06", label: "Apr 06, 2026" },
-  { day: "Mon", date: "07", full: "2026-04-07", label: "Apr 07, 2026" },
-  { day: "Tue", date: "08", full: "2026-04-08", label: "Apr 08, 2026" },
-];
+
+// Generate next 6 days starting from today (local time)
+function generateDates() {
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return Array.from({ length: 6 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const full = `${year}-${month}-${day}`;
+    const monthName = d.toLocaleString("en-IN", { month: "short" });
+    return {
+      day: days[d.getDay()],
+      date: day,
+      full,
+      label: `${monthName} ${day}, ${year}`,
+    };
+  });
+}
+const DATES = generateDates();
+
 
 const FORMAT_CLASSES: Record<string, string> = {
   IMAX: "bg-blue-500/20 text-blue-400 border-blue-500/30",
