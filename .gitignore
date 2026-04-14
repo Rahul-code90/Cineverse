@@ -47,3 +47,12 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Local scratch and temporary files
+scratch/
+.env*

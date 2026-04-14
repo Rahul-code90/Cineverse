@@ -18,6 +18,9 @@ export const api = {
     get: (id: number) => fetcher<{ movie: Movie }>(`/movies/${id}`),
     showtimes: (id: number, date?: string) =>
       fetcher<{ showtimes: Showtime[] }>(`/movies/${id}/showtimes${date ? `?date=${date}` : ""}`),
+    reviews: (id: number) => fetcher<{ reviews: Review[] }>(`/movies/${id}/reviews`),
+    addReview: (id: number, data: { userName: string; rating: number; comment: string }) =>
+      fetcher<{ success: boolean; review: Review }>(`/movies/${id}/reviews`, { method: "POST", body: JSON.stringify(data) }),
   },
   events: {
     list: () => fetcher<{ events: Event[] }>("/events"),
@@ -53,16 +56,35 @@ export const api = {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+    googleLogin: (data: { googleId: string; name?: string; email: string }) =>
+      fetcher<{ user: AuthUser }>("/auth/google", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    phoneLogin: (phoneNumber: string) =>
+      fetcher<{ user: AuthUser }>("/auth/phone", {
+        method: "POST",
+        body: JSON.stringify({ phoneNumber }),
+      }),
   },
   admin: {
     stats: () => fetcher<AdminStats>("/admin/stats"),
+    schedule: () => fetcher<{ schedule: any[] }>("/admin/schedule"),
     exportBookings: () => fetch(`${BASE}/admin/bookings/export`).then(r => r.blob()),
-    createMovie: (data: { title: string; genre: string; runtime: string; posterUrl?: string; backdropUrl?: string; trailerUrl?: string }) => 
+    createMovie: (data: Partial<Movie>) => 
       fetcher<{ success: boolean; movie: Movie }>("/admin/movies", { method: "POST", body: JSON.stringify(data) }),
     updateMovie: (id: number, data: Partial<Movie>) =>
       fetcher<{ success: boolean; movie: Movie }>("/admin/movies/" + id, { method: "PATCH", body: JSON.stringify(data) }),
     deleteMovie: (id: number) => 
       fetcher<{ success: boolean }>("/admin/movies/" + id, { method: "DELETE" }),
+    addShowtime: (data: { movieId: number; date: string; time: string; venue: string; format?: string; price?: number; totalSeats?: number }) =>
+      fetcher<{ success: boolean; showtime: Showtime }>("/admin/showtimes", { method: "POST", body: JSON.stringify(data) }),
+    listUsers: () => fetcher<{ users: any[] }>("/admin/users"),
+    exportUsers: () => fetch(`${BASE}/admin/users/export`).then(r => r.blob()),
+    exportSchedule: () => fetch(`${BASE}/admin/schedule/export`).then(r => r.blob()),
+    createEvent: (data: any) => fetcher<{ success: boolean; event: Event }>("/admin/events", { method: "POST", body: JSON.stringify(data) }),
+    updateEvent: (id: number, data: any) => fetcher<{ success: boolean; event: Event }>("/admin/events/" + id, { method: "PATCH", body: JSON.stringify(data) }),
+    deleteEvent: (id: number) => fetcher<{ success: boolean }>("/admin/events/" + id, { method: "DELETE" }),
   },
   ml: {
     revenue: () => fetcher<any>("/ml/predict/revenue"),
@@ -138,6 +160,15 @@ export interface Booking {
   userRating: number | null;
   posterUrl: string;
   posterGradient: string;
+  createdAt: string;
+}
+
+export interface Review {
+  id: number;
+  movieId: number;
+  userName: string;
+  rating: number;
+  comment: string;
   createdAt: string;
 }
 

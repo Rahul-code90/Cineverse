@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { bookingsTable, showtimesTable } from "@workspace/db/schema";
+import { bookingsTable, showtimesTable, eventsTable } from "@workspace/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -24,9 +24,9 @@ router.get("/bookings", async (req, res) => {
       ...b,
       seats: typeof b.seats === "string" ? JSON.parse(b.seats) : b.seats,
     }));
-    res.json({ bookings: parsed });
+    return res.json({ bookings: parsed });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch bookings" });
+    return res.status(500).json({ error: "Failed to fetch bookings" });
   }
 });
 
@@ -81,9 +81,19 @@ router.post("/bookings", async (req, res) => {
         .where(eq(showtimesTable.id, showtimeId));
     }
 
-    res.json({ booking: { ...booking, seats: JSON.parse(booking.seats as string) } });
+    if (eventId) {
+      const [event] = await db.select().from(eventsTable).where(eq(eventsTable.id, eventId));
+      if (!event || (event.availableTickets !== null && event.availableTickets < seats.length)) {
+        return res.status(400).json({ error: "Not enough tickets available for this event" });
+      }
+      await db.update(eventsTable)
+        .set({ availableTickets: sql`${eventsTable.availableTickets} - ${seats.length}` })
+        .where(eq(eventsTable.id, eventId));
+    }
+
+    return res.json({ booking: { ...booking, seats: JSON.parse(booking.seats as string) } });
   } catch (err) {
-    res.status(500).json({ error: "Failed to create booking" });
+    return res.status(500).json({ error: "Failed to create booking" });
   }
 });
 
@@ -95,9 +105,9 @@ router.patch("/bookings/:id/cancel", async (req, res) => {
       .where(eq(bookingsTable.id, id))
       .returning();
     if (!booking) return res.status(404).json({ error: "Booking not found" });
-    res.json({ booking: { ...booking, seats: typeof booking.seats === "string" ? JSON.parse(booking.seats) : booking.seats } });
+    return res.json({ booking: { ...booking, seats: typeof booking.seats === "string" ? JSON.parse(booking.seats) : booking.seats } });
   } catch (err) {
-    res.status(500).json({ error: "Failed to cancel booking" });
+    return res.status(500).json({ error: "Failed to cancel booking" });
   }
 });
 
@@ -113,9 +123,9 @@ router.patch("/bookings/:id/rate", async (req, res) => {
       .where(eq(bookingsTable.id, id))
       .returning();
     if (!booking) return res.status(404).json({ error: "Booking not found" });
-    res.json({ booking: { ...booking, seats: typeof booking.seats === "string" ? JSON.parse(booking.seats) : booking.seats } });
+    return res.json({ booking: { ...booking, seats: typeof booking.seats === "string" ? JSON.parse(booking.seats) : booking.seats } });
   } catch (err) {
-    res.status(500).json({ error: "Failed to rate booking" });
+    return res.status(500).json({ error: "Failed to rate booking" });
   }
 });
 

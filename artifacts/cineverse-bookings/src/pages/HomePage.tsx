@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Play, Star, Clock, ChevronRight, MapPin, Calendar, Flame, TrendingUp, Award, Zap, ArrowRight, Film, Loader2 } from "lucide-react";
+import { Search, Play, Star, Clock, ChevronRight, MapPin, Calendar, Flame, TrendingUp, Award, Zap, ArrowRight, Film, Loader2, X, Ticket } from "lucide-react";
 import { useLocation } from "wouter";
 import { api, type Movie, type Event } from "../lib/api";
 import { useApp } from "../contexts/AppContext";
@@ -27,7 +27,7 @@ function MovieCard({ movie, onClick }: { movie: Movie; onClick: () => void }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className={`w-full h-full bg-gradient-to-b ${movie.posterGradient}`} />
+          <div className={`w-full h-full bg-gradient-to-b ${movie.posterGradient || "from-gray-800 to-gray-950"}`} />
         )}
         {movie.badge && (
           <div className={`absolute top-2 left-2 px-2 py-0.5 rounded-md text-[10px] font-bold z-10 ${
@@ -39,10 +39,14 @@ function MovieCard({ movie, onClick }: { movie: Movie; onClick: () => void }) {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
         {hovered && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10">
-            <div className="w-12 h-12 rounded-full bg-[#e63946] flex items-center justify-center shadow-lg shadow-red-500/30">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10 transition-all">
+            <button 
+              onClick={(e) => { e.stopPropagation(); setSelectedTrailer(movie); }}
+              className="w-12 h-12 rounded-full bg-[#e63946] hover:scale-110 active:scale-95 flex items-center justify-center shadow-lg shadow-red-500/30 transition-transform"
+              title="Watch Trailer"
+            >
               <Play className="w-5 h-5 text-white ml-0.5" />
-            </div>
+            </button>
           </div>
         )}
         <div className="absolute bottom-2 left-0 right-0 px-2 z-10">
@@ -107,7 +111,7 @@ function EventCard({ event, onClick }: { event: Event; onClick: () => void }) {
             <span className="text-xs text-white/30">Starting from</span>
             <div className="text-xl font-bold">₹{event.priceFrom.toLocaleString()}</div>
           </div>
-          <button className="flex items-center gap-1.5 bg-[#e63946] hover:bg-[#c1121f] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors group/btn">
+          <button className="flex items-center gap-1.5 bg-[#e63946] hover:bg-[#c1121f] text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors group/btn" onClick={(e) => { e.stopPropagation(); onClick(); }}>
             Book <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -121,7 +125,19 @@ export function HomePage() {
   const [selectedCity, setSelectedCity] = useState("Mumbai");
   const [selectedGenre, setSelectedGenre] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
-  const { isSeeded, setIsSeeded } = useApp();
+  const { isSeeded, setIsSeeded, setBookingSession } = useApp();
+  const [selectedTrailer, setSelectedTrailer] = useState<Movie | null>(null);
+
+  const getEmbedUrl = (url: string) => {
+    if (!url) return "";
+    
+    // Comprehensive regex for YouTube IDs (Standard, shortened, embed, shorts)
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+    const match = url.match(regex);
+    const videoId = match ? match[1] : (url.length === 11 ? url : "");
+
+    return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1` : "";
+  };
 
   const { data: moviesData, isLoading: moviesLoading, refetch: refetchMovies } = useQuery({
     queryKey: ["movies"],
@@ -134,12 +150,7 @@ export function HomePage() {
   });
 
   useEffect(() => {
-    if (!isSeeded && moviesData && moviesData.movies.length === 0) {
-      api.seed().then(() => {
-        setIsSeeded(true);
-        refetchMovies();
-      }).catch(() => {});
-    } else if (moviesData && moviesData.movies.length > 0 && !isSeeded) {
+    if (moviesData && moviesData.movies.length > 0 && !isSeeded) {
       setIsSeeded(true);
     }
   }, [moviesData, isSeeded]);
@@ -196,10 +207,18 @@ export function HomePage() {
                   {CITIES.map(c => <option key={c} value={c} className="bg-[#1a1a2e]">{c}</option>)}
                 </select>
               </div>
-              <button onClick={() => navigate(`/movies/${movies[0]?.id || 1}`)}
-                className="bg-[#e63946] hover:bg-[#c1121f] text-white font-semibold px-6 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-red-500/20">
-                <Search className="w-4 h-4" />Search
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => navigate(`/movies/${featuredMovie?.id || 1}`)}
+                  className="bg-[#e63946] hover:bg-[#c1121f] text-white font-semibold px-6 py-3 rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-red-500/20">
+                  <Ticket className="w-4 h-4" />Book Now
+                </button>
+                {featuredMovie?.trailerUrl && (
+                  <button onClick={() => setSelectedTrailer(featuredMovie)}
+                    className="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-xl transition-all flex items-center gap-2 border border-white/10">
+                    <Play className="w-4 h-4" />Watch Trailer
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex items-center gap-8">
               {[
@@ -289,11 +308,51 @@ export function HomePage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {events.slice(0, 3).map(event => (
-              <EventCard key={event.id} event={event} onClick={() => navigate(`/movies/${movies[0]?.id || 1}`)} />
+              <EventCard key={event.id} event={event} onClick={() => {
+                setBookingSession({
+                  eventId: event.id,
+                  movieTitle: event.name,
+                  venue: event.venue,
+                  date: event.date,
+                  time: "07:00 PM",
+                  format: event.category || "LIVE",
+                  seats: [],
+                  totalAmount: event.priceFrom,
+                  convenienceFee: Math.round(event.priceFrom * 0.1),
+                  posterUrl: event.imageUrl,
+                  posterGradient: event.imageGradient || "from-gray-800 to-gray-900",
+                });
+                navigate("/seats");
+              }} />
             ))}
           </div>
         )}
       </section>
+
+      {/* Trailer Modal */}
+      {selectedTrailer && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 md:p-10 backdrop-blur-md" onClick={() => setSelectedTrailer(null)}>
+          <button className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-[101]" onClick={() => setSelectedTrailer(null)}>
+            <X className="w-6 h-6" />
+          </button>
+          <div className="w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10" onClick={e => e.stopPropagation()}>
+            {selectedTrailer.trailerUrl ? (
+              <iframe 
+                src={getEmbedUrl(selectedTrailer.trailerUrl)}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-white/30">
+                <Play className="w-16 h-16 opacity-20" />
+                <p>Trailer not available for this title</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

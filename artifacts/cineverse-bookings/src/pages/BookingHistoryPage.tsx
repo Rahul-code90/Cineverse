@@ -216,6 +216,11 @@ export function BookingHistoryPage({ searchQuery }: BookingHistoryPageProps) {
   const totalSpent = bookings.filter(b => b.status !== "cancelled").reduce((s, b) => s + b.totalAmount, 0);
   const moviesWatched = bookings.filter(b => b.status === "completed").length;
   const cinePoints = user?.cinePoints || 0;
+  
+  const ratedBookings = bookings.filter(b => b.userRating != null && b.userRating > 0);
+  const avgRatingGiven = ratedBookings.length > 0
+    ? (ratedBookings.reduce((sum, b) => sum + (b.userRating || 0), 0) / ratedBookings.length).toFixed(1)
+    : "—";
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white pt-16">
@@ -240,8 +245,8 @@ export function BookingHistoryPage({ searchQuery }: BookingHistoryPageProps) {
           {[
             { label: "Total Bookings", value: bookings.length, icon: <Ticket className="w-4 h-4 text-[#e63946]" />, bg: "from-[#e63946]/10 to-transparent" },
             { label: "Watched", value: moviesWatched, icon: <Film className="w-4 h-4 text-blue-400" />, bg: "from-blue-500/10 to-transparent" },
-            { label: "Events", value: bookings.filter(b => b.status === "completed" && b.eventId).length, icon: <Music className="w-4 h-4 text-purple-400" />, bg: "from-purple-500/10 to-transparent" },
-            { label: "CinePoints", value: cinePoints.toLocaleString(), icon: <Star className="w-4 h-4 text-amber-400 fill-amber-400" />, bg: "from-amber-400/10 to-transparent" },
+            { label: "Avg Rating Given", value: avgRatingGiven, icon: <Star className="w-4 h-4 text-amber-400" />, bg: "from-purple-500/10 to-transparent" },
+            { label: "CinePoints", value: cinePoints.toLocaleString(), icon: <Trophy className="w-4 h-4 text-amber-400" />, bg: "from-amber-400/10 to-transparent" },
           ].map((stat, i) => (
             <div key={i} className={`bg-[#12121e] border border-white/6 rounded-2xl p-4 bg-gradient-to-br ${stat.bg}`}>
               <div className="flex items-center justify-between mb-2.5">

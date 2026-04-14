@@ -15,6 +15,7 @@ export const eventsTable = sqliteTable("events", {
   description: text("description").notNull().default(""),
   totalTickets: integer("total_tickets").notNull().default(5000),
   availableTickets: integer("available_tickets").notNull().default(5000),
+  isHot: integer("is_hot").notNull().default(0),
   createdAt: text("created_at").notNull().default(new Date().toISOString()),
 });
 

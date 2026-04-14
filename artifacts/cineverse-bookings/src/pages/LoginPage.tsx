@@ -12,7 +12,8 @@ export function LoginPage() {
   const [name, setName] = useState("");
   const [city, setCity] = useState("Mumbai");
   const [showPass, setShowPass] = useState(false);
-  const [tab, setTab] = useState<"login" | "signup">("login");
+  const [tab, setTab] = useState<"login" | "signup" | "phone">("login");
+  const [phoneVal, setPhoneVal] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -32,6 +33,41 @@ export function LoginPage() {
       navigate("/");
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const result = await api.auth.googleLogin({
+        googleId: "G-" + Math.random().toString(36).slice(2, 11),
+        name: "Google Demo",
+        email: "demo@google.com"
+      });
+      setUser(result.user);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Google login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneLogin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!phoneVal) { setError("Please enter your phone number"); return; }
+    
+    setError("");
+    setLoading(true);
+    try {
+      const result = await api.auth.phoneLogin(phoneVal);
+      setUser(result.user);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Phone login failed");
     } finally {
       setLoading(false);
     }
@@ -110,29 +146,69 @@ export function LoginPage() {
             ))}
           </div>
 
-          <h1 className="text-2xl font-black mb-1">{tab === "login" ? "Welcome back" : "Create account"}</h1>
+          <h1 className="text-2xl font-black mb-1">{tab === "phone" ? "Enter Phone" : tab === "login" ? "Welcome back" : "Create account"}</h1>
           <p className="text-white/40 text-sm mb-8">
-            {tab === "login" ? "Sign in to your CineVerse account" : "Join millions of movie lovers"}
+            {tab === "phone" ? "We'll send you an OTP to verify" : tab === "login" ? "Sign in to your CineVerse account" : "Join millions of movie lovers"}
           </p>
 
-          <div className="flex gap-3 mb-6">
-            <button className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/8 rounded-xl py-2.5 text-sm font-medium transition-colors">
-              <Chrome className="w-4 h-4 text-white/60" />
-              Google
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/8 rounded-xl py-2.5 text-sm font-medium transition-colors">
-              <Phone className="w-4 h-4 text-white/60" />
-              Phone
-            </button>
-          </div>
+          {tab === "phone" ? (
+            <form onSubmit={handlePhoneLogin} className="space-y-4 mb-6">
+              <div>
+                <label className="block text-xs text-white/40 font-medium mb-2">Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+                  <input
+                    value={phoneVal}
+                    onChange={e => setPhoneVal(e.target.value.replace(/\D/g, ""))}
+                    className="w-full bg-white/5 border border-white/10 focus:border-[#e63946]/50 rounded-xl pl-10 pr-4 py-3 text-sm outline-none text-white placeholder-white/20 transition-colors"
+                    placeholder="e.g. 9876543210"
+                    type="tel"
+                    maxLength={15}
+                  />
+                </div>
+              </div>
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-400">
+                  {error}
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setTab("login")}
+                  className="flex-1 py-3.5 bg-white/10 hover:bg-white/15 text-white font-bold rounded-xl transition-all"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-[2] py-3.5 bg-[#e63946] hover:bg-[#c1121f] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#e63946]/20"
+                >
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Continue"}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <div className="flex gap-3 mb-6">
+                <button onClick={handleGoogleLogin} disabled={loading} className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/8 rounded-xl py-2.5 text-sm font-medium transition-colors">
+                  <Chrome className="w-4 h-4 text-white/60" />
+                  Google
+                </button>
+                <button onClick={() => { setError(""); setTab("phone"); }} disabled={loading} className="flex-1 flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/8 rounded-xl py-2.5 text-sm font-medium transition-colors">
+                  <Phone className="w-4 h-4 text-white/60" />
+                  Phone
+                </button>
+              </div>
 
-          <div className="relative flex items-center gap-4 mb-6">
-            <div className="flex-1 h-px bg-white/8" />
-            <span className="text-xs text-white/30">or continue with email</span>
-            <div className="flex-1 h-px bg-white/8" />
-          </div>
+              <div className="relative flex items-center gap-4 mb-6">
+                <div className="flex-1 h-px bg-white/8" />
+                <span className="text-xs text-white/30">or continue with email</span>
+                <div className="flex-1 h-px bg-white/8" />
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+              <form onSubmit={handleSubmit} className="space-y-4 mb-6">
             {tab === "signup" && (
               <div>
                 <label className="block text-xs text-white/40 font-medium mb-2">Full Name</label>
@@ -223,12 +299,13 @@ export function LoginPage() {
             </p>
           )}
           <p className="text-center text-xs text-white/25 mt-4">
-            {tab === "login" ? "Don't have an account? " : "Already have an account? "}
+            {tab === "login" ? "Don't have an account? " : tab === "signup" ? "Already have an account? " : "Go back to "}
             <button onClick={() => setTab(tab === "login" ? "signup" : "login")} className="text-[#e63946] hover:text-[#ff6b6b] font-medium transition-colors">
-              {tab === "login" ? "Sign Up" : "Sign In"}
+              {tab === "login" ? "Sign Up" : tab === "signup" ? "Sign In" : "Login"}
             </button>
           </p>
-        </div>
+        </>)}
+      </div>
       </div>
     </div>
   );

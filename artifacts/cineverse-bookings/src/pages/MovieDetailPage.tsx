@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Star, Clock, Play, Heart, Share2, Calendar, MapPin, Users, Award, Zap, ArrowRight, Loader2 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Star, Clock, Play, Heart, Share2, Calendar, MapPin, Users, Award, Zap, ArrowRight, Loader2, X, MessageSquare, Send } from "lucide-react";
 import { useLocation, useParams } from "wouter";
-import { api, type Showtime } from "../lib/api";
+import { api, type Showtime, type Review } from "../lib/api";
 import { useApp } from "../contexts/AppContext";
 
 const VENUES = ["PVR ICON, Andheri West", "INOX Grand, Bandra", "Cinepolis, Goregaon", "Carnival Cinemas, Thane"];
@@ -36,16 +36,34 @@ const FORMAT_CLASSES: Record<string, string> = {
   "2D": "bg-white/10 text-white/50 border-white/10",
 };
 
+function getEmbedUrl(url: string) {
+  if (!url) return "";
+  
+  // Comprehensive regex for YouTube IDs (Standard, shortened, embed, shorts)
+  const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+  const match = url.match(regex);
+  const videoId = match ? match[1] : (url.length === 11 ? url : "");
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1` : "";
+}
+
 export function MovieDetailPage() {
   const { id } = useParams<{ id: string }>();
   const movieId = parseInt(id || "1");
   const [, navigate] = useLocation();
-  const { setBookingSession } = useApp();
+  const { setBookingSession, user } = useApp();
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(0);
   const [selectedVenue, setSelectedVenue] = useState(VENUES[0]);
   const [selectedShow, setSelectedShow] = useState<Showtime | null>(null);
   const [liked, setLiked] = useState(false);
-  const [imgError, setImgError] = useState(false);
+  const [posterError, setPosterError] = useState(false);
+  const [backdropError, setBackdropError] = useState(false);
+  const [isTrailerOpen, setIsTrailerOpen] = useState(false);
+
+  const [newReview, setNewReview] = useState("");
+  const [hoverRating, setHoverRating] = useState(0);
+  const [selectedRating, setSelectedRating] = useState(0);
 
   const { data: movieData, isLoading: movieLoading } = useQuery({
     queryKey: ["movie", movieId],
@@ -57,9 +75,28 @@ export function MovieDetailPage() {
     queryFn: () => api.movies.showtimes(movieId, DATES[selectedDate].full),
   });
 
+  const { data: reviewsData, isLoading: reviewsLoading } = useQuery({
+    queryKey: ["reviews", movieId],
+    queryFn: () => api.movies.reviews(movieId),
+  });
+
+  const addReviewMutation = useMutation({
+    mutationFn: () => api.movies.addReview(movieId, {
+      userName: user?.name || "Guest User",
+      rating: selectedRating,
+      comment: newReview
+    }),
+    onSuccess: () => {
+      setNewReview("");
+      setSelectedRating(0);
+      queryClient.invalidateQueries({ queryKey: ["reviews", movieId] });
+    }
+  });
+
   const movie = movieData?.movie;
   const allShowtimes = showtimesData?.showtimes || [];
   const showtimes = allShowtimes.filter(s => s.venue === selectedVenue).slice(0, 6);
+  const reviews = reviewsData?.reviews || [];
 
   const handleSelectSeats = () => {
     if (!selectedShow || !movie) return;
@@ -94,22 +131,38 @@ export function MovieDetailPage() {
 
   return (
     <div>
+      {isTrailerOpen && movie.trailerUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+            <button onClick={() => setIsTrailerOpen(false)} className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-[#e63946] text-white rounded-full flex items-center justify-center transition-colors">
+              <X className="w-5 h-5" />
+            </button>
+            <iframe 
+              src={getEmbedUrl(movie.trailerUrl)} 
+              title="YouTube video player" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              allowFullScreen
+            ></iframe>
+          </div>
+        </div>
+      )}
       <div className="relative h-[55vh] min-h-[420px] overflow-hidden">
-        {!imgError && movie.backdropUrl ? (
-          <img src={movie.backdropUrl} alt={movie.title} className="absolute inset-0 w-full h-full object-cover" onError={() => setImgError(true)} />
+        {!backdropError && movie.backdropUrl ? (
+          <img src={movie.backdropUrl} alt={movie.title} className="absolute inset-0 w-full h-full object-cover" onError={() => setBackdropError(true)} />
         ) : (
-          <div className={`absolute inset-0 bg-gradient-to-br ${movie.posterGradient}`} />
-        )}
+          <div className={`absolute inset-0 bg-gradient-to-br ${movie.posterGradient || "from-gray-900 via-slate-900 to-black"}`} />
+        ) /* Enhanced backdrop fallback */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0f] via-[#0a0a0f]/70 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent" />
         <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-end pb-10 pt-24">
           <div className="flex gap-8 items-end w-full flex-wrap">
             <div className="hidden md:block w-40 h-60 rounded-2xl overflow-hidden border border-white/10 shrink-0 shadow-2xl shadow-black/50">
-              {!imgError && movie.posterUrl ? (
-                <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+              {!posterError && movie.posterUrl ? (
+                <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" onError={() => setPosterError(true)} />
               ) : (
-                <div className={`w-full h-full bg-gradient-to-b ${movie.posterGradient}`} />
-              )}
+                <div className={`w-full h-full bg-gradient-to-b ${movie.posterGradient || "from-gray-800 to-gray-900"}`} />
+              ) /* Enhanced poster fallback */}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-3 flex-wrap">
@@ -148,9 +201,13 @@ export function MovieDetailPage() {
               <button className="w-10 h-10 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 text-white/50 hover:text-white transition-all">
                 <Share2 className="w-5 h-5" />
               </button>
-              <button className="flex items-center gap-2 bg-white/10 border border-white/20 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-white/15 transition-all">
-                <Play className="w-4 h-4" />Watch Trailer
-              </button>
+              {movie.trailerUrl && (
+                <button 
+                  onClick={() => setIsTrailerOpen(true)}
+                  className="flex items-center gap-2 bg-white/10 border border-white/20 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-white/15 transition-all">
+                  <Play className="w-4 h-4" />Watch Trailer
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -185,39 +242,74 @@ export function MovieDetailPage() {
 
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold">Audience Reviews</h2>
+                <h2 className="text-lg font-bold flex items-center gap-2"><MessageSquare className="w-5 h-5" /> Live Reviews</h2>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                     <span className="font-bold">{movie.rating?.toFixed(1)}</span>
                   </div>
                   <span className="text-white/20">·</span>
-                  <span className="text-sm text-white/40">{(movie.votes / 1000).toFixed(1)}K ratings</span>
+                  <span className="text-sm text-white/40">{reviews.length + (movie.votes > 0 ? movie.votes/1000 : 0)} ratings</span>
                 </div>
               </div>
-              <div className="space-y-3">
-                {[
-                  { user: "Rahul K.", rating: 9.5, comment: "Breathtaking visuals and an epic storyline. The director has outdone himself!", date: "2 days ago" },
-                  { user: "Priya S.", rating: 9.0, comment: "A masterpiece. The IMAX experience is absolutely worth it.", date: "3 days ago" },
-                  { user: "Amit T.", rating: 8.5, comment: "Dense narrative but rewarding. The lead performance is phenomenal.", date: "4 days ago" },
-                ].map((review, i) => (
-                  <div key={i} className="bg-white/3 border border-white/6 rounded-2xl p-4 hover:border-white/10 transition-colors">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#e63946] to-[#ff6b6b] flex items-center justify-center text-xs font-bold">
-                          {review.user[0]}
-                        </div>
-                        <span className="font-medium text-sm">{review.user}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                        <span className="text-amber-400 font-bold text-sm">{review.rating}</span>
-                      </div>
-                    </div>
-                    <p className="text-white/60 text-sm leading-relaxed">{review.comment}</p>
-                    <span className="text-xs text-white/25 mt-2 block">{review.date}</span>
+              
+              <div className="bg-[#12121e] border border-white/10 rounded-2xl p-5 mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex">
+                    {[1,2,3,4,5,6,7,8,9,10].map(star => (
+                      <Star key={star} onClick={() => setSelectedRating(star)} onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)}
+                        className={`w-5 h-5 cursor-pointer transition-colors ${(hoverRating || selectedRating) >= star ? "text-amber-400 fill-amber-400" : "text-white/20"}`} />
+                    ))}
                   </div>
-                ))}
+                  <span className="text-xs text-white/40 ml-2">{selectedRating > 0 ? `${selectedRating}/10` : "Rate this movie"}</span>
+                </div>
+                <div className="flex gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#e63946] to-purple-600 flex flex-shrink-0 items-center justify-center text-sm font-bold shadow-lg">
+                    {user?.name?.[0] || "U"}
+                  </div>
+                  <div className="flex-1 relative">
+                    <textarea 
+                      value={newReview} onChange={e => setNewReview(e.target.value)}
+                      placeholder="What did you think of the movie? Share your experience..."
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-[#e63946]/50 min-h-[80px] resize-none transition-colors"
+                    />
+                    <button 
+                      onClick={() => addReviewMutation.mutate()}
+                      disabled={!newReview || selectedRating === 0 || addReviewMutation.isPending}
+                      className="absolute bottom-3 right-3 bg-[#e63946] hover:bg-[#c1121f] disabled:opacity-50 disabled:hover:bg-[#e63946] w-8 h-8 rounded-lg flex items-center justify-center transition-colors">
+                      {addReviewMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin text-white" /> : <Send className="w-4 h-4 text-white -ml-0.5" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {reviewsLoading ? (
+                  <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-white/30" /></div>
+                ) : reviews.length === 0 ? (
+                  <div className="text-center py-8 bg-white/3 border border-white/5 rounded-2xl">
+                    <p className="text-white/40 text-sm">No reviews yet. Be the first to share your thoughts!</p>
+                  </div>
+                ) : (
+                  reviews.map((review: Review) => (
+                    <div key={review.id} className="bg-white/3 border border-white/6 rounded-2xl p-4 hover:border-white/10 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#e63946] to-[#ff6b6b] flex items-center justify-center text-xs font-bold">
+                            {review.userName[0]?.toUpperCase()}
+                          </div>
+                          <span className="font-medium text-sm">{review.userName}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                          <span className="text-amber-400 font-bold text-sm">{review.rating}</span>
+                        </div>
+                      </div>
+                      <p className="text-white/60 text-sm leading-relaxed">{review.comment}</p>
+                      <span className="text-xs text-white/25 mt-2 block">{new Date(review.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>

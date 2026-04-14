@@ -74,7 +74,7 @@ export function SeatSelectionPage() {
 
   const [seats, setSeats] = useState<Seat[]>([]);
   const [hoveredSeat, setHoveredSeat] = useState<string | null>(null);
-  const [timeLeft] = useState("09:45");
+  const [timeLeftStr, setTimeLeftStr] = useState("10:00");
   const [imgError, setImgError] = useState(false);
 
   // Build seats when session loads
@@ -82,6 +82,28 @@ export function SeatSelectionPage() {
     const basePrice = 200; // default; could come from showtime
     setSeats(buildSeats(basePrice));
   }, []);
+
+  // Timer logic
+  useEffect(() => {
+    if (!bookingSession) return;
+    const endTime = Date.now() + 10 * 60 * 1000;
+    
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = endTime - now;
+      if (diff <= 0) {
+        clearInterval(interval);
+        setBookingSession(null);
+        navigate("/");
+        return;
+      }
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeLeftStr(`${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [bookingSession, setBookingSession, navigate]);
 
   const toggleSeat = (id: string) => {
     setSeats(prev => prev.map(s => {
@@ -288,7 +310,7 @@ export function SeatSelectionPage() {
             {selectedSeats.length > 0 && (
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2 mb-4 flex items-center gap-2">
                 <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="text-xs text-amber-400">Seats held for <strong>{timeLeft}</strong></span>
+                <span className="text-xs text-amber-400">Seats held for <strong>{timeLeftStr}</strong></span>
               </div>
             )}
 

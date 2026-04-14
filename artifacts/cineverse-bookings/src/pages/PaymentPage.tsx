@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreditCard, Smartphone, Building2, Wallet, Shield, Clock, CheckCircle2, ChevronRight, Lock, Zap, ArrowRight, Download, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { api, fetcher } from "../lib/api";
@@ -46,6 +46,28 @@ export function PaymentPage() {
   const [success, setSuccess] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [timeLeftStr, setTimeLeftStr] = useState("05:00");
+
+  useEffect(() => {
+    if (!bookingSession || success) return;
+    const endTime = Date.now() + 5 * 60 * 1000;
+    
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = endTime - now;
+      if (diff <= 0) {
+        clearInterval(interval);
+        setBookingSession(null);
+        navigate("/");
+        return;
+      }
+      const mins = Math.floor(diff / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      setTimeLeftStr(`${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [bookingSession, success, setBookingSession, navigate]);
 
   const session = bookingSession;
   const totalAmount = session?.totalAmount || 1350;
@@ -83,6 +105,7 @@ export function PaymentPage() {
           api.bookings.create({
             userId: user?.id || 1,
             movieId: session.movieId,
+            eventId: session.eventId,
             showtimeId: session.showtimeId,
             movieTitle: session.movieTitle,
             venue: session.venue,
@@ -142,6 +165,7 @@ export function PaymentPage() {
             const result = await api.bookings.create({
               userId: user?.id || 1,
               movieId: session.movieId,
+              eventId: session.eventId,
               showtimeId: session.showtimeId,
               movieTitle: session.movieTitle,
               venue: session.venue,
@@ -424,7 +448,7 @@ export function PaymentPage() {
             </div>
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-3 py-2.5 flex items-center gap-2 mb-4">
               <Clock className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="text-xs text-amber-400">Seats expire in <strong>06:22</strong></span>
+              <span className="text-xs text-amber-400">Seats expire in <strong>{timeLeftStr}</strong></span>
             </div>
             <button onClick={handlePay} disabled={processing || !session}
               className={`w-full py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all text-white ${

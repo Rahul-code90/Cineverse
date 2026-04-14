@@ -7,7 +7,7 @@ const router = Router();
 
 const MOVIES = [
   {
-    title: "Dune: Part Three",
+    title: "Dune: Part Two",
     genre: "Sci-Fi",
     rating: 9.1,
     votes: 42500,
@@ -15,118 +15,117 @@ const MOVIES = [
     certificate: "UA",
     languages: JSON.stringify(["English", "Hindi", "Tamil"]),
     badge: "NEW",
-    synopsis: "Following the events of Dune: Part Two, Paul Atreides continues his journey as the Kwisatz Haderach, navigating the complex political landscape of the universe.",
+    synopsis: "Following the events of Dune: Part One, Paul Atreides continues his journey as the Kwisatz Haderach, navigating the complex political landscape of the universe.",
     director: "Denis Villeneuve",
     cast: JSON.stringify([
       { name: "Timothée Chalamet", role: "Paul Atreides", color: "from-amber-700 to-amber-900" },
       { name: "Zendaya", role: "Chani", color: "from-rose-700 to-rose-900" },
-      { name: "Florence Pugh", role: "Lady Margot", color: "from-purple-700 to-purple-900" },
-      { name: "Austin Butler", role: "Feyd-Rautha", color: "from-blue-700 to-blue-900" },
     ]),
     posterUrl: "https://image.tmdb.org/t/p/w500/8b8R8l88XOedX922WuDnuw9t3KC.jpg",
     backdropUrl: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
+    trailerUrl: "https://www.youtube.com/watch?v=Way9Dexny3w",
     posterGradient: "from-amber-800 via-amber-900 to-stone-950",
     popularity: 98,
     isActive: 1,
   },
   {
-    title: "Oppenheimer 2",
+    title: "Oppenheimer",
     genre: "Drama",
     rating: 8.8,
     votes: 38200,
-    runtime: "3h 10m",
+    runtime: "3h 0m",
     certificate: "UA",
     languages: JSON.stringify(["English", "Hindi"]),
     badge: "HOT",
-    synopsis: "A continuation of the life and legacy of J. Robert Oppenheimer as the consequences of the atomic age reshape world politics.",
+    synopsis: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.",
     director: "Christopher Nolan",
     cast: JSON.stringify([
       { name: "Cillian Murphy", role: "J. Robert Oppenheimer", color: "from-slate-700 to-slate-900" },
       { name: "Emily Blunt", role: "Katherine Oppenheimer", color: "from-blue-700 to-blue-900" },
-      { name: "Matt Damon", role: "General Groves", color: "from-green-700 to-green-900" },
     ]),
     posterUrl: "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
     backdropUrl: "https://image.tmdb.org/t/p/original/rLb2cwF3Pazuxaj0sRXQ037tGI1.jpg",
+    trailerUrl: "https://www.youtube.com/watch?v=uYPbbksJxIg",
     posterGradient: "from-gray-700 via-gray-900 to-slate-950",
     popularity: 94,
     isActive: 1,
   },
   {
-    title: "Spider-Man: Beyond",
+    title: "Spider-Man: Across the Spider-Verse",
     genre: "Action",
-    rating: 8.5,
+    rating: 8.9,
     votes: 56800,
     runtime: "2h 20m",
     certificate: "U",
     languages: JSON.stringify(["English", "Hindi", "Tamil", "Telugu"]),
     badge: "TRENDING",
-    synopsis: "Miles Morales returns in a brand new adventure that takes him across dimensions he has never seen before.",
+    synopsis: "Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence.",
     director: "Joaquim Dos Santos",
     cast: JSON.stringify([
       { name: "Shameik Moore", role: "Miles Morales", color: "from-red-700 to-red-900" },
       { name: "Hailee Steinfeld", role: "Gwen Stacy", color: "from-pink-700 to-pink-900" },
-      { name: "Oscar Isaac", role: "Spider-Man 2099", color: "from-blue-700 to-blue-900" },
     ]),
     posterUrl: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg",
     backdropUrl: "https://image.tmdb.org/t/p/original/ynXoOxmDHNQ4UAy0oU6avW71HVW.jpg",
+    trailerUrl: "https://www.youtube.com/watch?v=shW9i6k8cB0",
     posterGradient: "from-red-800 via-red-900 to-slate-950",
     popularity: 91,
     isActive: 1,
   },
   {
-    title: "Interstellar 2",
+    title: "Interstellar",
     genre: "Sci-Fi",
-    rating: 9.3,
+    rating: 8.7,
     votes: 29100,
-    runtime: "2h 55m",
+    runtime: "2h 49m",
     certificate: "U",
     languages: JSON.stringify(["English", "Hindi"]),
     badge: "MUST WATCH",
-    synopsis: "Years after Cooper's return from the wormhole, a new cosmic anomaly threatens Earth's future.",
+    synopsis: "When Earth becomes uninhabitable in the future, a farmer and ex-NASA pilot, Joseph Cooper, is tasked to pilot a spacecraft, along with a team of researchers, to find a new planet for humans.",
     director: "Christopher Nolan",
     cast: JSON.stringify([
       { name: "Matthew McConaughey", role: "Cooper", color: "from-blue-700 to-blue-900" },
-      { name: "Jessica Chastain", role: "Murph", color: "from-orange-700 to-orange-900" },
       { name: "Anne Hathaway", role: "Brand", color: "from-teal-700 to-teal-900" },
     ]),
     posterUrl: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lZtvYcdeGiI.jpg",
     backdropUrl: "https://image.tmdb.org/t/p/original/xu9zaAevzQ5nnrsXN6JcahLnG4i.jpg",
+    trailerUrl: "https://www.youtube.com/watch?v=2LqzF5WauAw",
     posterGradient: "from-blue-800 via-blue-900 to-slate-950",
     popularity: 99,
     isActive: 1,
   },
   {
-    title: "The Witcher Chronicles",
+    title: "The Witcher",
     genre: "Fantasy",
     rating: 8.2,
     votes: 21400,
-    runtime: "2h 35m",
+    runtime: "1h 10m",
     certificate: "A",
     languages: JSON.stringify(["English", "Hindi"]),
     badge: "NEW",
-    synopsis: "Geralt of Rivia faces his most challenging quest yet as ancient forces awaken across the Continent.",
+    synopsis: "Geralt of Rivia, a mutated monster-hunter for hire, journeys toward his destiny in a turbulent world where people often prove more wicked than beasts.",
     director: "Andrzej Sapkowski",
     cast: JSON.stringify([
       { name: "Henry Cavill", role: "Geralt of Rivia", color: "from-gray-700 to-gray-900" },
       { name: "Anya Chalotra", role: "Yennefer", color: "from-purple-700 to-purple-900" },
-      { name: "Freya Allan", role: "Ciri", color: "from-amber-700 to-amber-900" },
     ]),
     posterUrl: "https://image.tmdb.org/t/p/w500/7VzOSMkJYPZB7S1TnzBB6iw5Lfz.jpg",
     backdropUrl: "https://image.tmdb.org/t/p/original/3FbnF5LPJLEF3R53RsCpCZy4vg4.jpg",
+    trailerUrl: "https://www.youtube.com/watch?v=ndl1W4ltcmg",
     posterGradient: "from-purple-800 via-purple-900 to-slate-950",
     popularity: 87,
     isActive: 1,
   },
   {
-    title: "Fast & Furious 12",
+    title: "Fast X",
     genre: "Action",
-    rating: 7.6,
+    rating: 7.2,
     votes: 18200,
-    runtime: "2h 10m",
+    runtime: "2h 21m",
     certificate: "UA",
     languages: JSON.stringify(["English", "Hindi", "Tamil", "Telugu"]),
     badge: "",
-    synopsis: "Dom Toretto and his family face their most dangerous challenge yet when a mysterious enemy from the past returns.",
+    synopsis: "Dom Toretto and his family must protect themselves from Dante Reyes, the son of drug lord Hernan Reyes, who is seeking revenge for his father's death.",
     director: "Louis Leterrier",
     cast: JSON.stringify([
       { name: "Vin Diesel", role: "Dom Toretto", color: "from-orange-700 to-orange-900" },
@@ -134,6 +133,7 @@ const MOVIES = [
     ]),
     posterUrl: "https://image.tmdb.org/t/p/w500/fiVW06jE7z9YnO4trhaMEdclSiC.jpg",
     backdropUrl: "https://image.tmdb.org/t/p/original/4XM8DUTQb3lhLemJC51Jx4a2EuA.jpg",
+    trailerUrl: "https://www.youtube.com/watch?v=32RAq6JzY-w",
     posterGradient: "from-orange-700 via-orange-900 to-slate-950",
     popularity: 78,
     isActive: 1,
@@ -263,42 +263,69 @@ router.post("/seed", async (req, res) => {
       cinePoints: 1250,
     }).returning();
 
-    const sampleBookings = [
-      {
-        bookingRef: "CV20260403DEMO1",
-        userId: demoUser.id,
-        movieId: insertedMovies[0].id,
-        movieTitle: "Dune: Part Three",
-        venue: "PVR ICON, Andheri West",
-        date: "Apr 03, 2026",
-        time: "01:30 PM",
-        format: "IMAX",
-        seats: JSON.stringify(["C4", "C5", "C6"]),
-        totalAmount: 1350,
-        convenienceFee: 135,
-        status: "confirmed",
-        posterUrl: MOVIES[0].posterUrl,
-        posterGradient: MOVIES[0].posterGradient,
-      },
-      {
-        bookingRef: "CV20260325DEMO2",
-        userId: demoUser.id,
-        movieId: insertedMovies[3].id,
-        movieTitle: "Interstellar 2",
-        venue: "INOX Grand, Bandra",
-        date: "Mar 25, 2026",
-        time: "06:45 PM",
-        format: "IMAX",
-        seats: JSON.stringify(["F8", "F9"]),
-        totalAmount: 900,
-        convenienceFee: 90,
-        status: "confirmed",
-        userRating: 9,
-        posterUrl: MOVIES[3].posterUrl,
-        posterGradient: MOVIES[3].posterGradient,
-      },
-    ];
-    await db.insert(bookingsTable).values(sampleBookings);
+    // GENERATE 100 HISTORICAL BOOKINGS FOR DAILY ANALYTICS (Last 30 Days)
+    const historicalBookings: any[] = [];
+    const movieIds = insertedMovies.map(m => m.id);
+    const movieTitles = insertedMovies.map(m => m.title);
+    
+    for (let i = 0; i < 100; i++) {
+        const randDaysPast = Math.floor(Math.random() * 30);
+        const dateObj = new Date();
+        dateObj.setDate(dateObj.getDate() - randDaysPast);
+        
+        const dateISO = dateObj.toISOString().slice(0, 10);
+        const movieIndex = Math.floor(Math.random() * movieIds.length);
+        const seatsCount = Math.floor(Math.random() * 4) + 1;
+        const amount = seatsCount * 250;
+        
+        historicalBookings.push({
+            bookingRef: `CVDAY${i.toString().padStart(4, '0')}`,
+            userId: demoUser.id,
+            movieId: movieIds[movieIndex],
+            movieTitle: movieTitles[movieIndex],
+            venue: VENUES[Math.floor(Math.random() * VENUES.length)],
+            date: dateISO,
+            time: TIMES[Math.floor(Math.random() * 3)],
+            format: "2D",
+            seats: JSON.stringify(Array.from({length: seatsCount}, (_, j) => `H${j+1}`)),
+            totalAmount: amount,
+            convenienceFee: Math.round(amount * 0.1),
+            status: "confirmed",
+            createdAt: dateObj.toISOString(),
+            posterUrl: MOVIES[movieIndex].posterUrl,
+            posterGradient: MOVIES[movieIndex].posterGradient,
+        });
+    }
+
+    // Add some Event bookings in the last 30 days too
+    for (let i = 0; i < 20; i++) {
+        const randDaysPast = Math.floor(Math.random() * 30);
+        const dateObj = new Date();
+        dateObj.setDate(dateObj.getDate() - randDaysPast);
+        
+        const eventIndex = Math.floor(Math.random() * insertedEvents.length);
+        const event = insertedEvents[eventIndex];
+        
+        historicalBookings.push({
+            bookingRef: `CVEVT${i.toString().padStart(4, '0')}`,
+            userId: demoUser.id,
+            eventId: event.id,
+            movieTitle: event.name,
+            venue: event.venue,
+            date: event.date,
+            time: "07:00 PM",
+            format: event.category,
+            seats: JSON.stringify(["VIP1"]),
+            totalAmount: event.priceFrom,
+            convenienceFee: Math.round(event.priceFrom * 0.1),
+            status: "confirmed",
+            createdAt: dateObj.toISOString(),
+            posterUrl: event.imageUrl,
+            posterGradient: event.imageGradient,
+        });
+    }
+
+    await db.insert(bookingsTable).values(historicalBookings);
 
     res.json({
       success: true,
