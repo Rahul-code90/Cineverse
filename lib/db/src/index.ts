@@ -8,6 +8,7 @@ import * as schema from "./schema";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Place the SQLite DB file in the lib/db directory
 const dbPath = process.env.DATABASE_PATH ?? path.resolve(__dirname, "../../../cineverse.db");
+console.log(`[DB] Initializing SQLite database at: ${dbPath}`);
 
 const sqlite = new Database(dbPath);
 

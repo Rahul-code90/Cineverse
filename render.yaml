@@ -1,0 +1,28 @@
+services:
+  # 1. Main CineVerse Application (Frontend + Backend)
+  - type: web
+    name: cineverse-app
+    runtime: node
+    buildCommand: pnpm install && pnpm run build
+    startCommand: pnpm --filter @workspace/api-server run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_PATH
+        value: /opt/render/project/src/cineverse.db
+      - key: ML_SERVICE_URL
+        value: http://cineverse-ml:5000
+      - key: PORT
+        value: 3001
+    healthCheckPath: /api/health
+
+  # 2. Machine Learning Service (Python/Flask)
+  - type: web
+    name: cineverse-ml
+    runtime: python
+    buildCommand: cd artifacts/ml-service && pip install -r requirements.txt
+    startCommand: cd artifacts/ml-service && python app.py
+    envVars:
+      - key: PORT
+        value: 5000
+    healthCheckPath: /
