@@ -8,7 +8,7 @@
     "dev:frontend": "pnpm --filter @workspace/cineverse-bookings run dev",
     "dev:ml": "cd artifacts/ml-service && python app.py",
     "dev:all": "concurrently \"pnpm run dev:api\" \"pnpm run dev:frontend\" \"pnpm run dev:ml\"",
-    "build": "pnpm -r --if-present run build",
+    "build": "pnpm -r --filter !@workspace/mockup-sandbox --if-present run build",
     "build:prod": "pnpm -r --filter !@workspace/mockup-sandbox --if-present run build",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
